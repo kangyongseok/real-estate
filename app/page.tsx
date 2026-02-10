@@ -230,6 +230,13 @@ export default function SubscriptionPage() {
     return { status: '공고완료', variant: 'outline' as const };
   };
 
+  const isAnnouncementEnded = (item: SubscriptionNoticeData) => {
+    // 당첨자 발표일이 지났는지 확인
+    if (!item.PRZWNER_PRESNATN_DE) return false;
+    const announcementDate = dayjs(item.PRZWNER_PRESNATN_DE);
+    return dayjs().isAfter(announcementDate, 'day');
+  };
+
   // Intersection Observer for infinite scroll
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -359,10 +366,15 @@ export default function SubscriptionPage() {
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
-            {results.map((item, index) => (
+            {results.map((item, index) => {
+              const isEnded = isAnnouncementEnded(item);
+              return (
               <div
                 key={index}
-                className="rounded-lg border p-4 transition-colors"
+                className={cn(
+                  "rounded-lg border p-4 transition-colors",
+                  isEnded && "opacity-50 bg-muted/30"
+                )}
               >
                 {/* Clickable Header */}
                 <div
@@ -395,6 +407,11 @@ export default function SubscriptionPage() {
                       </Badge>
                     );
                   })()}
+                  {isEnded && (
+                    <Badge variant="secondary" className="bg-gray-600 text-white">
+                      당첨자발표완료
+                    </Badge>
+                  )}
                   {item.SUBSCRPT_AREA_CODE_NM && (
                     <Badge variant="outline">{item.SUBSCRPT_AREA_CODE_NM}</Badge>
                   )}
@@ -479,7 +496,8 @@ export default function SubscriptionPage() {
                   </div>
                 )}
               </div>
-            ))}
+            );
+            })}
 
             {/* Infinite Scroll Trigger */}
             <div ref={observerTarget} className="h-4" />
