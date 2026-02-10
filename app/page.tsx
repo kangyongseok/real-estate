@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import dayjs from 'dayjs';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { ko } from 'date-fns/locale';
@@ -11,57 +11,75 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { REGIONS, REAL_ESTATE_TYPES, PERIOD_TYPES } from '@/constants/regions';
-import type { SearchFormData, AuctionData, SearchPeriodType, RealEstateType } from '@/types/auction';
+import KakaoMap from '@/components/kakao-map';
+import type { SubscriptionFormData, SubscriptionNoticeData } from '@/types/auction';
 
 registerLocale('ko', ko);
 
-export default function Home() {
-  const [formData, setFormData] = useState<SearchFormData>({
-    periodType: '03',
-    startDate: '',
-    endDate: '',
-    city: 'all',
-    district: 'all',
-    realEstateType: 'all',
+const HOUSE_TYPES = [
+  { value: '', label: '전체' },
+  { value: '01', label: 'APT' },
+  { value: '09', label: '민간사전청약' },
+  { value: '10', label: '신혼희망타운' },
+];
+
+const REGIONS = [
+  { value: '', label: '전체' },
+  { value: '11', label: '서울' },
+  { value: '26', label: '부산' },
+  { value: '27', label: '대구' },
+  { value: '28', label: '인천' },
+  { value: '29', label: '광주' },
+  { value: '30', label: '대전' },
+  { value: '31', label: '울산' },
+  { value: '36', label: '세종' },
+  { value: '41', label: '경기' },
+  { value: '42', label: '강원' },
+  { value: '43', label: '충북' },
+  { value: '44', label: '충남' },
+  { value: '45', label: '전북' },
+  { value: '46', label: '전남' },
+  { value: '47', label: '경북' },
+  { value: '48', label: '경남' },
+  { value: '50', label: '제주' },
+];
+
+const formatDateForApi = (date: Date | null): string => {
+  if (!date) return '';
+  return dayjs(date).format('YYYYMM');
+};
+
+const getDefaultDates = () => {
+  const today = new Date();
+  const threeMonthsAgo = new Date();
+  threeMonthsAgo.setMonth(today.getMonth() - 3);
+  return { start: threeMonthsAgo, end: today };
+};
+
+export default function SubscriptionPage() {
+  const defaultDates = getDefaultDates();
+
+  const [formData, setFormData] = useState<SubscriptionFormData>({
+    startDate: formatDateForApi(defaultDates.start),
+    endDate: formatDateForApi(defaultDates.end),
+    region: '',
+    houseType: '',
+    page: 1,
+    pageSize: 10,
   });
 
-  const [startDateObj, setStartDateObj] = useState<Date | null>(null);
-  const [endDateObj, setEndDateObj] = useState<Date | null>(null);
-  const [results, setResults] = useState<AuctionData[]>([]);
+  const [startDateObj, setStartDateObj] = useState<Date | null>(defaultDates.start);
+  const [endDateObj, setEndDateObj] = useState<Date | null>(defaultDates.end);
+  const [results, setResults] = useState<SubscriptionNoticeData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [message, setMessage] = useState<string>('');
   const [totalCount, setTotalCount] = useState<number>(0);
-  const [expandedRow, setExpandedRow] = useState<number | null>(null);
+  const [pageInfo, setPageInfo] = useState({ currentPage: 1, pageSize: 10, totalPages: 0 });
+  const [openMapIndex, setOpenMapIndex] = useState<number | null>(null);
 
-  const selectedCity = REGIONS.find((region) => region.code === formData.city);
-  const districts = selectedCity?.districts || [];
-
-  const handleInputChange = (field: keyof SearchFormData, value: string) => {
-    setFormData((prev) => {
-      const newData = { ...prev, [field]: value };
-      if (field === 'city') newData.district = 'all';
-      if (field === 'periodType') {
-        newData.startDate = '';
-        newData.endDate = '';
-        setStartDateObj(null);
-        setEndDateObj(null);
-      }
-      return newData;
-    });
-  };
-
-  const formatDateForApi = (date: Date | null): string => {
-    if (!date) return '';
-    const d = dayjs(date);
-    switch (formData.periodType) {
-      case '01': return d.format('YYYY');
-      case '02': return d.format('YYYYMM');
-      case '03': return d.format('YYYYMMDD');
-      default: return '';
-    }
+  const handleInputChange = (field: keyof SubscriptionFormData, value: string | number) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleStartDateChange = (date: Date | null) => {
@@ -74,11 +92,11 @@ export default function Home() {
     setFormData((prev) => ({ ...prev, endDate: formatDateForApi(date) }));
   };
 
-  const handleSearch = async () => {
+  const handleSearch = async (page: number = 1) => {
     setError('');
     setMessage('');
     setResults([]);
-    setExpandedRow(null);
+    setOpenMapIndex(null);
 
     if (!formData.startDate || !formData.endDate) {
       setError('검색 기간을 선택해주세요.');
@@ -92,15 +110,15 @@ export default function Home() {
     setIsLoading(true);
     try {
       const params = new URLSearchParams({
-        search_type_api: formData.periodType,
-        search_start_date_api: formData.startDate,
-        search_end_date_api: formData.endDate,
+        numOfRows: String(formData.pageSize),
+        pageNo: String(page),
+        startmonth: formData.startDate,
+        endmonth: formData.endDate,
       });
-      if (formData.city !== 'all') params.append('search_regn1_name_api', formData.city);
-      if (formData.district !== 'all') params.append('search_regn2_name_api', formData.district);
-      if (formData.realEstateType !== 'all') params.append('search_real_cls_api', formData.realEstateType);
+      if (formData.region) params.append('region', formData.region);
+      if (formData.houseType) params.append('houseSecd', formData.houseType);
 
-      const response = await fetch(`/api/auction?${params.toString()}`);
+      const response = await fetch(`/api/subscription?${params.toString()}`);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         setError(errorData.error || `서버 오류 (${response.status})`);
@@ -116,34 +134,61 @@ export default function Home() {
       setResults(data.data);
       setMessage(data.message || '');
       setTotalCount(data.totalCount || 0);
+      setPageInfo(data.pageInfo || { currentPage: page, pageSize: formData.pageSize, totalPages: 0 });
+      setFormData((prev) => ({ ...prev, page }));
       if (data.data.length === 0) setMessage('검색 조건에 맞는 결과가 없습니다.');
     } catch (err) {
       if (err instanceof TypeError && err.message.includes('fetch')) {
-        setError('서버에 연결할 수 없습니다. 네트워크 연결을 확인해주세요.');
+        setError('서버에 연결할 수 없습니다.');
       } else {
-        setError(`검색 중 오류가 발생했습니다: ${err instanceof Error ? err.message : '알 수 없는 오류'}`);
+        setError(`검색 중 오류: ${err instanceof Error ? err.message : '알 수 없는 오류'}`);
       }
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleRowClick = (index: number) => {
-    setExpandedRow(expandedRow === index ? null : index);
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= pageInfo.totalPages) {
+      setOpenMapIndex(null);
+      handleSearch(newPage);
+    }
   };
 
-  const getCurrentPeriodFormat = () => {
-    const period = PERIOD_TYPES.find((p) => p.value === formData.periodType);
-    return period?.placeholder || '';
+  const handleNoticeClick = (url: string | undefined) => {
+    if (url) window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleToggleMap = (e: React.MouseEvent, index: number) => {
+    e.stopPropagation();
+    setOpenMapIndex(openMapIndex === index ? null : index);
+  };
+
+  const handleMapKeyDown = (e: React.KeyboardEvent, index: number) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      e.stopPropagation();
+      setOpenMapIndex(openMapIndex === index ? null : index);
+    }
+  };
+
+  const getPageNumbers = () => {
+    const { currentPage, totalPages } = pageInfo;
+    const pages: number[] = [];
+    const maxVisible = 5;
+    let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    const end = Math.min(totalPages, start + maxVisible - 1);
+    if (end - start < maxVisible - 1) start = Math.max(1, end - maxVisible + 1);
+    for (let i = start; i <= end; i++) pages.push(i);
+    return pages;
   };
 
   return (
     <div className="container py-6 md:py-10 space-y-6 max-w-4xl">
-      {/* Page Header */}
       <div className="space-y-1">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">경매 통계 조회</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">청약홈 분양정보 조회</h1>
         <p className="text-sm md:text-base text-muted-foreground">
-          서울 및 경기 지역의 강제경매개시결정등기 신청 부동산 현황을 검색할 수 있습니다.
+          한국부동산원 청약홈의 APT, 민간사전청약, 신혼희망타운 등 분양정보를 검색할 수 있습니다.
         </p>
       </div>
 
@@ -151,44 +196,18 @@ export default function Home() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">검색 조건</CardTitle>
-          <CardDescription>기간, 지역, 부동산 구분을 선택한 후 검색하세요.</CardDescription>
+          <CardDescription>기간과 필터를 선택한 후 검색하세요.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Period Type */}
-          <div className="space-y-2">
-            <Label>검색 기간 타입</Label>
-            <div className="flex gap-4">
-              {PERIOD_TYPES.map((type) => (
-                <label key={type.value} className="flex items-center gap-2 cursor-pointer text-sm">
-                  <input
-                    type="radio"
-                    name="periodType"
-                    value={type.value}
-                    checked={formData.periodType === type.value}
-                    onChange={(e) => handleInputChange('periodType', e.target.value as SearchPeriodType)}
-                    className="h-4 w-4 text-primary"
-                  />
-                  {type.label}
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Date Range */}
+        <CardContent className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>시작 기간</Label>
+              <Label>검색 시작월 <span className="text-destructive">*</span></Label>
               <DatePicker
                 selected={startDateObj}
                 onChange={handleStartDateChange}
-                dateFormat={
-                  formData.periodType === '01' ? 'yyyy년'
-                    : formData.periodType === '02' ? 'yyyy년 MM월'
-                    : 'yyyy년 MM월 dd일'
-                }
-                showYearPicker={formData.periodType === '01'}
-                showMonthYearPicker={formData.periodType === '02'}
-                placeholderText={getCurrentPeriodFormat()}
+                dateFormat="yyyy년 MM월"
+                showMonthYearPicker
+                placeholderText="시작월 선택"
                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer"
                 maxDate={new Date()}
                 locale="ko"
@@ -196,95 +215,63 @@ export default function Home() {
               />
             </div>
             <div className="space-y-2">
-              <Label>종료 기간</Label>
+              <Label>검색 종료월 <span className="text-destructive">*</span></Label>
               <DatePicker
                 selected={endDateObj}
                 onChange={handleEndDateChange}
-                dateFormat={
-                  formData.periodType === '01' ? 'yyyy년'
-                    : formData.periodType === '02' ? 'yyyy년 MM월'
-                    : 'yyyy년 MM월 dd일'
-                }
-                showYearPicker={formData.periodType === '01'}
-                showMonthYearPicker={formData.periodType === '02'}
-                placeholderText={getCurrentPeriodFormat()}
+                dateFormat="yyyy년 MM월"
+                showMonthYearPicker
+                placeholderText="종료월 선택"
                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer"
                 minDate={startDateObj ?? undefined}
-                maxDate={new Date()}
                 locale="ko"
                 showPopperArrow={false}
               />
             </div>
           </div>
 
-          {/* Region Selects */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="city">시도</Label>
+              <Label htmlFor="region">지역</Label>
               <select
-                id="city"
-                value={formData.city}
-                onChange={(e) => handleInputChange('city', e.target.value)}
+                id="region"
+                value={formData.region}
+                onChange={(e) => handleInputChange('region', e.target.value)}
                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               >
-                <option value="all">전체</option>
-                {REGIONS.map((region) => (
-                  <option key={region.code} value={region.code}>{region.name}</option>
+                {REGIONS.map((r) => (
+                  <option key={r.value} value={r.value}>{r.label}</option>
                 ))}
               </select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="district">시군구</Label>
+              <Label htmlFor="houseType">주택구분</Label>
               <select
-                id="district"
-                value={formData.district}
-                onChange={(e) => handleInputChange('district', e.target.value)}
-                disabled={formData.city === 'all' || districts.length === 0}
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
+                id="houseType"
+                value={formData.houseType}
+                onChange={(e) => handleInputChange('houseType', e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               >
-                <option value="all">전체</option>
-                {districts.map((district) => (
-                  <option key={district.code} value={district.code}>{district.name}</option>
+                {HOUSE_TYPES.map((t) => (
+                  <option key={t.value} value={t.value}>{t.label}</option>
                 ))}
               </select>
             </div>
           </div>
 
-          {/* Real Estate Type */}
-          <div className="space-y-2">
-            <Label>부동산 구분</Label>
-            <div className="flex gap-4 flex-wrap">
-              {REAL_ESTATE_TYPES.map((type) => (
-                <label key={type.value} className="flex items-center gap-2 cursor-pointer text-sm">
-                  <input
-                    type="radio"
-                    name="realEstateType"
-                    value={type.value}
-                    checked={formData.realEstateType === type.value}
-                    onChange={(e) => handleInputChange('realEstateType', e.target.value as RealEstateType)}
-                    className="h-4 w-4 text-primary"
-                  />
-                  {type.label}
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <Button onClick={handleSearch} disabled={isLoading} className="w-full">
-            {isLoading ? '검색 중...' : '검색'}
+          <Button onClick={() => handleSearch(1)} disabled={isLoading} className="w-full">
+            {isLoading ? '검색 중...' : '검색하기'}
           </Button>
         </CardContent>
       </Card>
 
-      {/* Error */}
+      {/* Error / Info */}
       {error && (
         <Alert variant="destructive">
           <AlertTitle>오류 발생</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-
-      {/* Info */}
       {message && !error && (
         <Alert>
           <AlertTitle>안내</AlertTitle>
@@ -301,67 +288,145 @@ export default function Home() {
               <Badge variant="secondary">총 {totalCount.toLocaleString()}건</Badge>
             </div>
           </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>일자</TableHead>
-                  <TableHead>시도</TableHead>
-                  <TableHead>시군구</TableHead>
-                  <TableHead className="text-right">건수</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {results.map((item, index) => (
-                  <React.Fragment key={index}>
-                    <TableRow
-                      onClick={() => handleRowClick(index)}
-                      className="cursor-pointer"
+          <CardContent className="space-y-3">
+            {results.map((item, index) => (
+              <div
+                key={index}
+                className="rounded-lg border p-4 transition-colors"
+              >
+                {/* Clickable Header */}
+                <div
+                  onClick={() => handleNoticeClick(item.PBLANC_URL)}
+                  className="cursor-pointer hover:opacity-80"
+                  role="link"
+                  tabIndex={0}
+                  aria-label={`${item.HOUSE_NM} 상세보기`}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleNoticeClick(item.PBLANC_URL); }}
+                >
+                  <div className="mb-2">
+                    <div className="flex items-center justify-between mb-1">
+                      <h3 className="font-semibold text-sm leading-snug">{item.HOUSE_NM}</h3>
+                      <span className="text-xs text-primary shrink-0 ml-2">상세보기 →</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{item.HSSPLY_ADRES}</p>
+                  </div>
+                </div>
+
+                {/* Badges & Info */}
+                <div className="flex items-center gap-2 flex-wrap mb-2">
+                  {item.SUBSCRPT_AREA_CODE_NM && (
+                    <Badge variant="outline">{item.SUBSCRPT_AREA_CODE_NM}</Badge>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 text-xs pt-2 border-t">
+                  <div>
+                    <span className="text-muted-foreground">공급 세대수</span>
+                    <p className="font-medium">{parseInt(item.TOT_SUPLY_HSHLDCO || '0').toLocaleString()}세대</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">모집공고일</span>
+                    <p className="font-medium">{item.RCRIT_PBLANC_DE}</p>
+                  </div>
+                  {item.SUBSCRPT_RCEPT_BGNDE && item.SUBSCRPT_RCEPT_ENDDE && (
+                    <div>
+                      <span className="text-muted-foreground">청약접수기간</span>
+                      <p className="font-medium">{item.SUBSCRPT_RCEPT_BGNDE} ~ {item.SUBSCRPT_RCEPT_ENDDE}</p>
+                    </div>
+                  )}
+                  {item.PRZWNER_PRESNATN_DE && (
+                    <div>
+                      <span className="text-muted-foreground">당첨자발표일</span>
+                      <p className="font-medium">{item.PRZWNER_PRESNATN_DE}</p>
+                    </div>
+                  )}
+                  {item.MDHS_TELNO && (
+                    <div>
+                      <span className="text-muted-foreground">문의전화</span>
+                      <p className="font-medium">{item.MDHS_TELNO}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Map Toggle Button */}
+                {item.HSSPLY_ADRES && (
+                  <div className="pt-3 mt-3 border-t">
+                    <Button
+                      variant={openMapIndex === index ? 'default' : 'outline'}
+                      size="sm"
+                      className="w-full sm:w-auto"
+                      onClick={(e) => handleToggleMap(e, index)}
+                      onKeyDown={(e) => handleMapKeyDown(e, index)}
+                      aria-expanded={openMapIndex === index}
+                      aria-label={`${item.HOUSE_NM} 지도 ${openMapIndex === index ? '닫기' : '보기'}`}
                     >
-                      <TableCell className="font-medium">
-                        <span className={`inline-block mr-2 text-xs transition-transform duration-200 ${expandedRow === index ? 'rotate-90' : ''}`}>
-                          ▶
-                        </span>
-                        {item.resDate}
-                      </TableCell>
-                      <TableCell>{item.adminRegn1Name}</TableCell>
-                      <TableCell>{item.adminRegn2Name}</TableCell>
-                      <TableCell className="text-right font-medium">
-                        {parseInt(item.tot).toLocaleString()}건
-                      </TableCell>
-                    </TableRow>
-                    {expandedRow === index && (
-                      <TableRow className="bg-muted/50">
-                        <TableCell colSpan={4}>
-                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 py-2 text-sm">
-                            <div>
-                              <span className="text-muted-foreground">조회 일자</span>
-                              <p className="font-medium">{item.resDate}</p>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">경매 건수</span>
-                              <p className="font-medium text-primary">{parseInt(item.tot).toLocaleString()}건</p>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">시도</span>
-                              <p className="font-medium">{item.adminRegn1Name || '전체'}</p>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">시군구</span>
-                              <p className="font-medium">{item.adminRegn2Name || '전체'}</p>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">검색 기간 타입</span>
-                              <p className="font-medium">{PERIOD_TYPES.find((p) => p.value === formData.periodType)?.label}</p>
-                            </div>
-                          </div>
-                        </TableCell>
-                      </TableRow>
+                      <svg className="h-4 w-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      {openMapIndex === index ? '지도 닫기' : '지도 보기'}
+                    </Button>
+
+                    {/* Inline Map */}
+                    {openMapIndex === index && (
+                      <div className="mt-3 space-y-2">
+                        <KakaoMap
+                          address={item.HSSPLY_ADRES}
+                          placeName={item.HOUSE_NM}
+                          height="280px"
+                        />
+                        <a
+                          href={`https://map.kakao.com/?q=${encodeURIComponent(item.HSSPLY_ADRES)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+                          onClick={(e) => e.stopPropagation()}
+                          aria-label="카카오맵에서 크게 보기"
+                        >
+                          <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                          카카오맵에서 크게 보기
+                        </a>
+                      </div>
                     )}
-                  </React.Fragment>
+                  </div>
+                )}
+              </div>
+            ))}
+
+            {/* Pagination */}
+            {pageInfo.totalPages > 1 && (
+              <div className="flex justify-center items-center gap-1 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(pageInfo.currentPage - 1)}
+                  disabled={pageInfo.currentPage === 1 || isLoading}
+                >
+                  이전
+                </Button>
+                {getPageNumbers().map((pageNum) => (
+                  <Button
+                    key={pageNum}
+                    variant={pageNum === pageInfo.currentPage ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handlePageChange(pageNum)}
+                    disabled={pageNum === pageInfo.currentPage || isLoading}
+                  >
+                    {pageNum}
+                  </Button>
                 ))}
-              </TableBody>
-            </Table>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(pageInfo.currentPage + 1)}
+                  disabled={pageInfo.currentPage === pageInfo.totalPages || isLoading}
+                >
+                  다음
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

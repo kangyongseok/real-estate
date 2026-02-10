@@ -13,9 +13,9 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { href: '/subscription', label: '청약홈', description: '분양정보 조회' },
+  { href: '/', label: '청약홈', description: '분양정보 조회' },
   { href: '/lease', label: 'LH 분양·임대', description: 'LH 공고 조회' },
-  { href: '/', label: '경매 통계', description: '경매 현황 통계' },
+  { href: '/auction-stats', label: '경매 통계', description: '경매 현황 통계' },
   { href: '/properties', label: '경매 물건', description: '법원 경매 검색' },
 ];
 
@@ -35,7 +35,7 @@ const SiteHeader = () => {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center justify-between">
         {/* Logo */}
-        <Link href="/subscription" className="flex items-center gap-2 shrink-0" onClick={handleCloseMobileMenu}>
+        <Link href="/" className="flex items-center gap-2 shrink-0" onClick={handleCloseMobileMenu}>
           <span className="text-lg font-bold tracking-tight">부동산 정보</span>
         </Link>
 
