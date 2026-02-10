@@ -3,8 +3,8 @@ import './globals.css';
 import SiteHeader from '@/components/layout/site-header';
 
 export const metadata: Metadata = {
-  title: '부동산 정보 - 경매·분양·청약',
-  description: '부동산 경매 통계, 법원 경매 물건, LH 분양·임대, 청약홈 분양정보를 한 곳에서 검색하세요.',
+  title: '부동산 정보 - 청약·분양·경매',
+  description: '청약홈 분양정보, LH 분양·임대, 부동산 경매 통계 및 법원 경매 물건을 한 곳에서 검색하세요.',
   robots: {
     index: false,
     follow: false,
