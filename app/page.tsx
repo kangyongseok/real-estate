@@ -6,6 +6,7 @@ import DatePicker, { registerLocale } from 'react-datepicker';
 import { ko } from 'date-fns/locale';
 import 'react-datepicker/dist/react-datepicker.css';
 
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -191,6 +192,26 @@ export default function SubscriptionPage() {
     }
   };
 
+  const getRecruitmentStatus = (item: SubscriptionNoticeData) => {
+    const today = dayjs();
+    const startDate = item.SUBSCRPT_RCEPT_BGNDE ? dayjs(item.SUBSCRPT_RCEPT_BGNDE) : null;
+    const endDate = item.SUBSCRPT_RCEPT_ENDDE ? dayjs(item.SUBSCRPT_RCEPT_ENDDE) : null;
+
+    if (!startDate || !endDate) {
+      return { status: '일자미정', variant: 'secondary' as const };
+    }
+
+    if (today.isBefore(startDate, 'day')) {
+      return { status: '청약예정', variant: 'default' as const };
+    }
+
+    if (today.isAfter(endDate, 'day')) {
+      return { status: '청약마감', variant: 'outline' as const };
+    }
+
+    return { status: '청약진행중', variant: 'default' as const, isActive: true };
+  };
+
   // Intersection Observer for infinite scroll
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -345,6 +366,17 @@ export default function SubscriptionPage() {
 
                 {/* Badges & Info */}
                 <div className="flex items-center gap-2 flex-wrap mb-2">
+                  {(() => {
+                    const statusInfo = getRecruitmentStatus(item);
+                    return (
+                      <Badge 
+                        variant={statusInfo.variant}
+                        className={statusInfo.isActive ? 'bg-green-600 text-white hover:bg-green-700' : ''}
+                      >
+                        {statusInfo.status}
+                      </Badge>
+                    );
+                  })()}
                   {item.SUBSCRPT_AREA_CODE_NM && (
                     <Badge variant="outline">{item.SUBSCRPT_AREA_CODE_NM}</Badge>
                   )}
@@ -360,9 +392,14 @@ export default function SubscriptionPage() {
                     <p className="font-medium">{item.RCRIT_PBLANC_DE}</p>
                   </div>
                   {item.SUBSCRPT_RCEPT_BGNDE && item.SUBSCRPT_RCEPT_ENDDE && (
-                    <div>
+                    <div className={getRecruitmentStatus(item).isActive ? 'col-span-2' : ''}>
                       <span className="text-muted-foreground">청약접수기간</span>
-                      <p className="font-medium">{item.SUBSCRPT_RCEPT_BGNDE} ~ {item.SUBSCRPT_RCEPT_ENDDE}</p>
+                      <p className={cn(
+                        "font-medium",
+                        getRecruitmentStatus(item).isActive && "text-green-600 font-semibold"
+                      )}>
+                        {item.SUBSCRPT_RCEPT_BGNDE} ~ {item.SUBSCRPT_RCEPT_ENDDE}
+                      </p>
                     </div>
                   )}
                   {item.PRZWNER_PRESNATN_DE && (
