@@ -194,22 +194,40 @@ export default function SubscriptionPage() {
 
   const getRecruitmentStatus = (item: SubscriptionNoticeData) => {
     const today = dayjs();
+    
+    // 청약접수기간이 있으면 우선 사용
     const startDate = item.SUBSCRPT_RCEPT_BGNDE ? dayjs(item.SUBSCRPT_RCEPT_BGNDE) : null;
     const endDate = item.SUBSCRPT_RCEPT_ENDDE ? dayjs(item.SUBSCRPT_RCEPT_ENDDE) : null;
 
-    if (!startDate || !endDate) {
+    if (startDate && endDate) {
+      if (today.isBefore(startDate, 'day')) {
+        return { status: '청약예정', variant: 'default' as const };
+      }
+      if (today.isAfter(endDate, 'day')) {
+        return { status: '청약마감', variant: 'outline' as const };
+      }
+      return { status: '청약진행중', variant: 'default' as const, isActive: true };
+    }
+
+    // 청약접수기간이 없으면 모집공고일로 판단
+    const noticeDate = item.RCRIT_PBLANC_DE ? dayjs(item.RCRIT_PBLANC_DE) : null;
+    if (!noticeDate) {
       return { status: '일자미정', variant: 'secondary' as const };
     }
 
-    if (today.isBefore(startDate, 'day')) {
-      return { status: '청약예정', variant: 'default' as const };
+    // 모집공고일 기준 (공고일로부터 일정 기간 경과 여부로 판단)
+    const daysSinceNotice = today.diff(noticeDate, 'day');
+    
+    if (daysSinceNotice < 0) {
+      return { status: '공고예정', variant: 'default' as const };
     }
-
-    if (today.isAfter(endDate, 'day')) {
-      return { status: '청약마감', variant: 'outline' as const };
+    
+    if (daysSinceNotice <= 30) {
+      // 공고 후 30일 이내는 진행중으로 간주
+      return { status: '공고진행중', variant: 'default' as const, isActive: true };
     }
-
-    return { status: '청약진행중', variant: 'default' as const, isActive: true };
+    
+    return { status: '공고완료', variant: 'outline' as const };
   };
 
   // Intersection Observer for infinite scroll
