@@ -1,0 +1,467 @@
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+
+<title>대한민국 법원 등기정보광장</title>
+
+
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="format-detection" content="telephone=no">
+
+
+
+<!-- <link type="text/css" rel="stylesheet" href="../../common/css/font.css"> -->
+<!-- <link type="text/css" rel="stylesheet" href="../../common/css/reset.css"> -->
+<!-- <link type="text/css" rel="stylesheet" href="../../common/css/common.css"> -->
+<!-- <link type="text/css" rel="stylesheet" href="../css/style.css"> -->
+
+<!-- <!-- library -->
+<!-- <link type="text/css" rel="stylesheet" href="../../common/css/lib/jquery-ui.css"> -->
+<!-- <link type="text/css" rel="stylesheet" href="../../common/css/lib/jquery.mCustomScrollbar.css"> -->
+<!-- <script src="../../common/js/lib/jquery-1.12.4.min.js"></script> -->
+<!-- <script src="../../common/js/lib/jquery-ui.js"></script> -->
+<!-- <script src="../../common/js/lib/jquery.mCustomScrollbar.min.js"></script> -->
+
+<!-- <!-- custom ui -->
+<!-- <script src="../js/common_portal.js"></script> -->
+ </head>
+
+
+<body>
+<div id="wrap">
+
+
+    <!-- sub container S -->
+    <div id="container">
+        <div class="sub_contents">
+
+            <h2 style="text-align:center" class="title line"><span>Open API 명세서</span></h2>
+
+            <div class="contents_inner">
+                <!-- search 추가 2019-09-26 -->
+                <form name="search_form" id="search_form" method="post">
+	                <input type="hidden" name="ris_menu_seq" id="ris_menu_seq" value=""/>
+	                <input type="hidden" name="pageIndex" id="pageIndex" value="">
+
+	                <input type="hidden" name="sort_cond" id="sort_cond" value="">
+	                <input type="hidden" name="sort_ord" id="sort_ord" value="">
+
+	                <input type="hidden" name="search_word" id="search_word" value="">
+	                <input type="hidden" name="pagePerCount" id="pagePerCount" value="">
+
+	                <input type="hidden" name="rdata_seq" id="rdata_seq" >
+
+	                <!-- search -->
+                </form>
+
+                <div class="openapi_detail">
+                    <h3 class="subtitle"><span>※ 서비스명 : 강제경매개시결정등기 신청 부동산 현황</span></h3>
+                        <table border="1">
+                            <colgroup>
+                                <col style="width:12%" />
+                                <col style="width:38%" />
+                                <col style="width:12%" />
+                                <col style="width:38%" />
+                                <col style="width:auto" />
+                            </colgroup>
+                            <tbody>
+                                <tr>
+                                    <th scope="row">분류체계</th>
+                                    <td colspan="4">부동산등기 &gt; 신청정보 &gt; 권리별현황 &gt; 강제경매개시결정</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">설명</th>
+                                    <td colspan="4">강제경매개시결정등기가 신청된 부동산 수를 부동산구분(건물, 토지, 집합건물), 기간(일/월/년), 지역별로 제공함</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">갱신주기</th>
+                                    <td colspan="4">일</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+
+                    <h3 class="subtitle small"><span>※ 요청주소</span></h3>
+                        <table border="1">
+                            <colgroup>
+                                <col style="width:12%" />
+                                <col style="width:auto" />
+                            </colgroup>
+                            <tbody>
+                                <tr var="item" items="[{param_ordno=1, param_mand_yn=Y, param_dsc=Open API 서비스ID, param_tpcd=B, rdata_seq=0000000087, param_type_name=STRING, param_name=id}, {param_ordno=2, param_mand_yn=Y, param_dsc=응답형식(xml,json) : 기본 xml, param_tpcd=B, rdata_seq=0000000087, param_type_name=STRING, param_name=reqtype}, {param_ordno=3, param_mand_yn=Y, param_dsc=인증키, param_tpcd=B, rdata_seq=0000000087, param_type_name=STRING, param_name=key}, {param_ordno=1, param_mand_yn=Y, param_dsc=검색기간 구분(01 - 년별 검색, 02 - 월별 검색, 03 - 일별 검색), param_tpcd=I, rdata_seq=0000000087, param_type_name=STRING, param_name=search_type_api}, {param_ordno=2, param_mand_yn=Y, param_dsc=검색시작 기간(예시 : 01-2018, 02-201801, 03-20190101), param_tpcd=I, rdata_seq=0000000087, param_type_name=STRING, param_name=search_start_date_api}, {param_ordno=3, param_mand_yn=Y, param_dsc=검색종료 기간(예시 : 01-2019, 02-201901, 03-20190101), param_tpcd=I, rdata_seq=0000000087, param_type_name=STRING, param_name=search_end_date_api}, {param_ordno=4, param_mand_yn=N, param_dsc=검색 시도 코드(예시 : 900 - 서울특별시), param_tpcd=I, rdata_seq=0000000087, param_type_name=STRING, param_name=search_regn1_name_api}, {param_ordno=5, param_mand_yn=N, param_dsc=검색 시군구 코드(예시 : 915 - 서초구), param_tpcd=I, rdata_seq=0000000087, param_type_name=STRING, param_name=search_regn2_name_api}, {param_ordno=6, param_mand_yn=N, param_dsc=검색 부동산구분(01 - 건물, 02 - 집합건물, 03 - 토지), param_tpcd=I, rdata_seq=0000000087, param_type_name=STRING, param_name=search_real_cls_api}, {param_ordno=1, param_mand_yn=Y, param_dsc=결과일자(01:년,02:월,03:일), param_tpcd=O, rdata_seq=0000000087, param_type_name=STRING, param_name=resDate}, {param_ordno=2, param_mand_yn=Y, param_dsc=결과지역 시도, param_tpcd=O, rdata_seq=0000000087, param_type_name=STRING, param_name=adminRegn1Name}, {param_ordno=3, param_mand_yn=Y, param_dsc=결과지역 시군구, param_tpcd=O, rdata_seq=0000000087, param_type_name=STRING, param_name=adminRegn2Name}, {param_ordno=4, param_mand_yn=Y, param_dsc=결과 건수, param_tpcd=O, rdata_seq=0000000087, param_type_name=STRING, param_name=tot}]" varStatus="status">
+                                    <th scope="row">요청주소</th>
+                                    <td colspan="4">/openapi/cr/rs/selectCrRsRgsCsOpenApi.rest?id=0000000087</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">요청제한횟수</th>
+                                    <td style="text-align:center" colspan="4">일 최대 1,000회</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                    <h3 class="subtitle small"><span>※ 기본인자</span></h3>
+                        <table border="1">
+                            <colgroup>
+                                <col style="width:25%" />
+                                <col style="width:10%" />
+                                <col style="width:15%" />
+                                <col style="width:50%" />
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th scope="col">변수명</th>
+                                    <th scope="col">필수여부</th>
+                                    <th scope="col">타입</th>
+                                    <th scope="col" colspan="2">설명</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            
+                                   
+                                <tr>
+                                    <td>id</td>
+                                    <td style="text-align:center">Y</td>
+                                    <td style="text-align:center">STRING</td>
+                                    <td class="t_left" colspan="2">Open API 서비스ID</td>
+                                </tr>
+                                
+                            
+                                   
+                                <tr>
+                                    <td>reqtype</td>
+                                    <td style="text-align:center">Y</td>
+                                    <td style="text-align:center">STRING</td>
+                                    <td class="t_left" colspan="2">응답형식(xml,json) : 기본 xml</td>
+                                </tr>
+                                
+                            
+                                   
+                                <tr>
+                                    <td>key</td>
+                                    <td style="text-align:center">Y</td>
+                                    <td style="text-align:center">STRING</td>
+                                    <td class="t_left" colspan="2">인증키</td>
+                                </tr>
+                                
+                            
+                                   
+                            
+                                   
+                            
+                                   
+                            
+                                   
+                            
+                                   
+                            
+                                   
+                            
+                                   
+                            
+                                   
+                            
+                                   
+                            
+                                   
+                            
+                            </tbody>
+                        </table>
+
+
+                    <h3 class="subtitle small"><span>※ 요청인자</span></h3>
+                        <table border="1">
+                            <colgroup>
+                                <col style="width:25%" />
+                                <col style="width:10%" />
+                                <col style="width:15%" />
+                                <col style="width:50%" />
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th scope="col">변수명</th>
+                                    <th scope="col">필수여부</th>
+                                    <th scope="col">타입</th>
+                                    <th scope="col" colspan="2">설명</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            
+                                   
+                         
+                                   
+                         
+                                   
+                         
+                                   
+
+                                <tr>
+                                    <td>search_type_api</td>
+                                    <td style="text-align:center">Y</td>
+                                    <td style="text-align:center">STRING</td>
+                                    <td class="t_left" colspan="2">검색기간 구분(01 - 년별 검색, 02 - 월별 검색, 03 - 일별 검색)</td>
+                                </tr>
+                                
+                         
+                                   
+
+                                <tr>
+                                    <td>search_start_date_api</td>
+                                    <td style="text-align:center">Y</td>
+                                    <td style="text-align:center">STRING</td>
+                                    <td class="t_left" colspan="2">검색시작 기간(예시 : 01-2018, 02-201801, 03-20190101)</td>
+                                </tr>
+                                
+                         
+                                   
+
+                                <tr>
+                                    <td>search_end_date_api</td>
+                                    <td style="text-align:center">Y</td>
+                                    <td style="text-align:center">STRING</td>
+                                    <td class="t_left" colspan="2">검색종료 기간(예시 : 01-2019, 02-201901, 03-20190101)</td>
+                                </tr>
+                                
+                         
+                                   
+
+                                <tr>
+                                    <td>search_regn1_name_api</td>
+                                    <td style="text-align:center">N</td>
+                                    <td style="text-align:center">STRING</td>
+                                    <td class="t_left" colspan="2">검색 시도 코드(예시 : 900 - 서울특별시)</td>
+                                </tr>
+                                
+                         
+                                   
+
+                                <tr>
+                                    <td>search_regn2_name_api</td>
+                                    <td style="text-align:center">N</td>
+                                    <td style="text-align:center">STRING</td>
+                                    <td class="t_left" colspan="2">검색 시군구 코드(예시 : 915 - 서초구)</td>
+                                </tr>
+                                
+                         
+                                   
+
+                                <tr>
+                                    <td>search_real_cls_api</td>
+                                    <td style="text-align:center">N</td>
+                                    <td style="text-align:center">STRING</td>
+                                    <td class="t_left" colspan="2">검색 부동산구분(01 - 건물, 02 - 집합건물, 03 - 토지)</td>
+                                </tr>
+                                
+                         
+                                   
+                         
+                                   
+                         
+                                   
+                         
+                                   
+                         
+                            </tbody>
+                        </table>
+
+                    <div class="group top clearfix">
+                        <h3 class="subtitle small"><span>※ 출력값</span></h3>
+                    </div>
+                        <table border="1">
+                            <colgroup>
+                                <col style="width:25%" />
+                                <col style="width:25%" />
+                                <col style="width:50%" />
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th scope="col">변수명</th>
+                                    <th scope="col">타입</th>
+                                    <th scope="col" colspan="3">설명</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+	                            
+	                                   
+	                            
+	                                   
+	                            
+	                                   
+	                            
+	                                   
+	                            
+	                                   
+	                            
+	                                   
+	                            
+	                                   
+	                            
+	                                   
+	                            
+	                                   
+	                            
+	                                   
+
+	                                <tr>
+	                                    <td>resDate</td>
+	                                    <td style="text-align:center">STRING</td>
+	                                    <td class="t_left" colspan="3">결과일자(01:년,02:월,03:일)</td>
+	                                </tr>
+	                                
+	                            
+	                                   
+
+	                                <tr>
+	                                    <td>adminRegn1Name</td>
+	                                    <td style="text-align:center">STRING</td>
+	                                    <td class="t_left" colspan="3">결과지역 시도</td>
+	                                </tr>
+	                                
+	                            
+	                                   
+
+	                                <tr>
+	                                    <td>adminRegn2Name</td>
+	                                    <td style="text-align:center">STRING</td>
+	                                    <td class="t_left" colspan="3">결과지역 시군구</td>
+	                                </tr>
+	                                
+	                            
+	                                   
+
+	                                <tr>
+	                                    <td>tot</td>
+	                                    <td style="text-align:center">STRING</td>
+	                                    <td class="t_left" colspan="3">결과 건수</td>
+	                                </tr>
+	                                
+	                            
+                            </tbody>
+                        </table>
+
+
+                    <h3 class="subtitle small"><span>※ 메시지설명</span></h3>
+
+
+                        <table border="1">
+                            <thead>
+                                <tr>
+                                    <th scope="col">코드</th>
+                                    <th scope="col" colspan="4">설명</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- 반복하면서 treeMap의 key, value를 나눠서 넣어준다. -->
+                                
+                                <tr>
+                                    <td>APIERROR-0001</td>
+                                    <td class="t_left" colspan="4">파라미터 값이 누락 혹은 유효하지 않습니다.</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>APIERROR-0002</td>
+                                    <td class="t_left" colspan="4">서버 오류입니다.(지속적으로 발생시 시스템 담당자에게 문의 바랍니다.)</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>APIERROR-0003</td>
+                                    <td class="t_left" colspan="4">일별 트래픽 제한을 넘은 호출입니다. 오늘은 더이상 호출할 수 없습니다.</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>APIERROR-0004</td>
+                                    <td class="t_left" colspan="4">서비스ID값이 없습니다.요청인자 중 ID를 확인하십시오.</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>APIERROR-0005</td>
+                                    <td class="t_left" colspan="4">인증키값이 없습니다.요청인자 중 Key를 확인하십시오.</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>APIERROR-0006</td>
+                                    <td class="t_left" colspan="4">search_regn1_name_api 파라미터 값이 유효하지 않습니다.</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>APIERROR-0007</td>
+                                    <td class="t_left" colspan="4">search_regn2_name_api 파라미터 값이 유효하지 않습니다.</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>APIERROR-0008</td>
+                                    <td class="t_left" colspan="4">search_regt1_name_api 파라미터 값이 유효하지 않습니다.</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>APIERROR-0009</td>
+                                    <td class="t_left" colspan="4">search_regt2_name_api 파라미터 값이 유효하지 않습니다.</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>APIERROR-0010</td>
+                                    <td class="t_left" colspan="4">출력데이터가 너무 많습니다. 검색기간을 줄여주세요.</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>APIERROR-0011</td>
+                                    <td class="t_left" colspan="4">조회기간이 제한범위를 초과하였습니다. 검색기간을 줄여주세요.</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>APIINFO-0001</td>
+                                    <td class="t_left" colspan="4">정상 처리되었습니다.</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>APIINFO-0002</td>
+                                    <td class="t_left" colspan="4">사용 중단된 인증키입니다.</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>APIINFO-0003</td>
+                                    <td class="t_left" colspan="4">해당하는 데이터가 없습니다.</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>APIINFO-0004</td>
+                                    <td class="t_left" colspan="4">해당하는 인증키를 찾을 수 없습니다. 요청인자 중 KEY를 확인하십시오.</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>APIINFO-0005</td>
+                                    <td class="t_left" colspan="4">해당하는 서비스를 찾을 수 없습니다. 요청인자 중 ID를 확인하십시오.</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>APIINFO-0006</td>
+                                    <td class="t_left" colspan="4">해당 서비스ID는 제공 중단된 서비스입니다.</td>
+                                </tr>
+                                
+                             </tbody>
+                        </table>
+
+                </div>
+            </div><!-- //contents_inner -->
+        </div><!-- //sub_contents -->
+    </div>
+    <!-- sub container E -->
+</div>
+
+<!-- sub container E -->
+</body>
+
+</html>
