@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import dayjs from 'dayjs';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { ko } from 'date-fns/locale';
@@ -75,8 +75,10 @@ export default function SubscriptionPage() {
   const [error, setError] = useState<string>('');
   const [message, setMessage] = useState<string>('');
   const [totalCount, setTotalCount] = useState<number>(0);
-  const [pageInfo, setPageInfo] = useState({ currentPage: 1, pageSize: 10, totalPages: 0 });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [openMapIndex, setOpenMapIndex] = useState<number | null>(null);
+  const observerTarget = useRef<HTMLDivElement>(null);
 
   const handleInputChange = (field: keyof SubscriptionFormData, value: string | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -92,12 +94,7 @@ export default function SubscriptionPage() {
     setFormData((prev) => ({ ...prev, endDate: formatDateForApi(date) }));
   };
 
-  const handleSearch = async (page: number = 1) => {
-    setError('');
-    setMessage('');
-    setResults([]);
-    setOpenMapIndex(null);
-
+  const handleSearch = async (page: number = 1, isNewSearch: boolean = true) => {
     if (!formData.startDate || !formData.endDate) {
       setError('검색 기간을 선택해주세요.');
       return;
@@ -105,6 +102,15 @@ export default function SubscriptionPage() {
     if (formData.startDate > formData.endDate) {
       setError('시작 날짜가 종료 날짜보다 늦을 수 없습니다.');
       return;
+    }
+
+    if (isNewSearch) {
+      setError('');
+      setMessage('');
+      setResults([]);
+      setCurrentPage(1);
+      setHasMore(true);
+      setOpenMapIndex(null);
     }
 
     setIsLoading(true);
@@ -131,12 +137,24 @@ export default function SubscriptionPage() {
         return;
       }
 
-      setResults(data.data);
+      if (isNewSearch) {
+        setResults(data.data);
+        setTotalCount(data.totalCount || 0);
+        if (data.data.length === 0) {
+          setMessage('검색 조건에 맞는 결과가 없습니다.');
+          setHasMore(false);
+        }
+      } else {
+        setResults((prev) => [...prev, ...data.data]);
+      }
+
       setMessage(data.message || '');
-      setTotalCount(data.totalCount || 0);
-      setPageInfo(data.pageInfo || { currentPage: page, pageSize: formData.pageSize, totalPages: 0 });
-      setFormData((prev) => ({ ...prev, page }));
-      if (data.data.length === 0) setMessage('검색 조건에 맞는 결과가 없습니다.');
+      
+      // 더 이상 데이터가 없는지 확인
+      const loadedCount = isNewSearch ? data.data.length : results.length + data.data.length;
+      if (loadedCount >= (data.totalCount || 0) || data.data.length === 0) {
+        setHasMore(false);
+      }
     } catch (err) {
       if (err instanceof TypeError && err.message.includes('fetch')) {
         setError('서버에 연결할 수 없습니다.');
@@ -148,12 +166,13 @@ export default function SubscriptionPage() {
     }
   };
 
-  const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= pageInfo.totalPages) {
-      setOpenMapIndex(null);
-      handleSearch(newPage);
+  const loadMore = useCallback(() => {
+    if (!isLoading && hasMore) {
+      const nextPage = currentPage + 1;
+      setCurrentPage(nextPage);
+      handleSearch(nextPage, false);
     }
-  };
+  }, [isLoading, hasMore, currentPage, formData]);
 
   const handleNoticeClick = (url: string | undefined) => {
     if (url) window.open(url, '_blank', 'noopener,noreferrer');
@@ -172,16 +191,28 @@ export default function SubscriptionPage() {
     }
   };
 
-  const getPageNumbers = () => {
-    const { currentPage, totalPages } = pageInfo;
-    const pages: number[] = [];
-    const maxVisible = 5;
-    let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-    const end = Math.min(totalPages, start + maxVisible - 1);
-    if (end - start < maxVisible - 1) start = Math.max(1, end - maxVisible + 1);
-    for (let i = start; i <= end; i++) pages.push(i);
-    return pages;
-  };
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoading) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1, rootMargin: '100px' }
+    );
+
+    const currentTarget = observerTarget.current;
+    if (currentTarget) {
+      observer.observe(currentTarget);
+    }
+
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
+      }
+    };
+  }, [hasMore, isLoading, loadMore]);
 
   return (
     <div className="container py-6 md:py-10 space-y-6 max-w-4xl">
@@ -395,36 +426,28 @@ export default function SubscriptionPage() {
               </div>
             ))}
 
-            {/* Pagination */}
-            {pageInfo.totalPages > 1 && (
-              <div className="flex justify-center items-center gap-1 pt-4 border-t">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(pageInfo.currentPage - 1)}
-                  disabled={pageInfo.currentPage === 1 || isLoading}
-                >
-                  이전
-                </Button>
-                {getPageNumbers().map((pageNum) => (
-                  <Button
-                    key={pageNum}
-                    variant={pageNum === pageInfo.currentPage ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => handlePageChange(pageNum)}
-                    disabled={pageNum === pageInfo.currentPage || isLoading}
-                  >
-                    {pageNum}
-                  </Button>
-                ))}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(pageInfo.currentPage + 1)}
-                  disabled={pageInfo.currentPage === pageInfo.totalPages || isLoading}
-                >
-                  다음
-                </Button>
+            {/* Infinite Scroll Trigger */}
+            <div ref={observerTarget} className="h-4" />
+            
+            {/* Loading Indicator */}
+            {isLoading && results.length > 0 && (
+              <div className="flex justify-center items-center py-4 border-t">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>더 불러오는 중...</span>
+                </div>
+              </div>
+            )}
+            
+            {/* End of Results */}
+            {!hasMore && results.length > 0 && (
+              <div className="flex justify-center items-center py-4 border-t">
+                <p className="text-sm text-muted-foreground">
+                  모든 결과를 불러왔습니다 ({results.length}건)
+                </p>
               </div>
             )}
           </CardContent>
