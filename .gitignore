@@ -24,6 +24,10 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env
+.env.development.local
+.env.test.local
+.env.production.local
 
 # vercel
 .vercel
@@ -31,3 +35,27 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 민감한 API 문서
+*.docx
+*.pdf
+*.doc
+
+# 로그 파일
+*.log
+
+# 임시 파일
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# IDE 설정
+.vscode/
+.idea/
+*.iml
+
+# OS 파일
+Thumbs.db
+Desktop.ini

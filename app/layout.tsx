@@ -5,6 +5,19 @@ import SiteHeader from '@/components/layout/site-header';
 export const metadata: Metadata = {
   title: '부동산 정보 - 경매·분양·청약',
   description: '부동산 경매 통계, 법원 경매 물건, LH 분양·임대, 청약홈 분양정보를 한 곳에서 검색하세요.',
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+    googleBot: {
+      index: false,
+      follow: false,
+      noimageindex: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'none',
+      'max-snippet': -1,
+    },
+  },
 };
 
 export default function RootLayout({

@@ -1,6 +1,18 @@
 import puppeteer, { type Page, type Browser } from 'puppeteer';
 import type { AuctionProperty, AuctionSearchParams } from '@/types/auction-detail';
 
+// 크롤링된 원시 데이터 타입 (텍스트 형식)
+interface RawAuctionProperty {
+  caseNumber: string;
+  courtName: string;
+  buildingType: string;
+  address: string;
+  appraisalText: string;
+  minimumBidText: string;
+  bidDateText?: string;
+  url: string;
+}
+
 // 법원경매정보 사이트 URL
 const BASE_URL = 'https://www.courtauction.go.kr';
 const SEARCH_URL = `${BASE_URL}/RetrieveRealEstMulDetailList.laf`;
@@ -275,7 +287,7 @@ export async function searchAuctionProperties(
     }
 
     // 결과 파싱
-    const properties: AuctionProperty[] = await targetPage.evaluate(
+    const properties: RawAuctionProperty[] = await targetPage.evaluate(
       (baseUrl) => {
         const tableSelectors = [
           'table.Ltbl_list tbody tr',

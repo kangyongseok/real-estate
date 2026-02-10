@@ -1,0 +1,28 @@
+# 모든 웹 크롤러의 접근을 차단합니다
+User-agent: *
+Disallow: /
+
+# 주요 검색 엔진 크롤러 명시적 차단
+User-agent: Googlebot
+Disallow: /
+
+User-agent: Bingbot
+Disallow: /
+
+User-agent: Slurp
+Disallow: /
+
+User-agent: DuckDuckBot
+Disallow: /
+
+User-agent: Baiduspider
+Disallow: /
+
+User-agent: YandexBot
+Disallow: /
+
+User-agent: facebookexternalhit
+Disallow: /
+
+User-agent: Twitterbot
+Disallow: /
