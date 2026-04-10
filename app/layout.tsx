@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import SiteHeader from '@/components/layout/site-header';
+import GoogleAnalytics from '@/components/analytics/google-analytics';
 
 export const metadata: Metadata = {
   title: '부동산 정보 - 청약·분양·경매',
@@ -28,6 +29,7 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <body className="min-h-screen bg-background antialiased">
+        <GoogleAnalytics />
         <div className="relative flex min-h-screen flex-col">
           <SiteHeader />
           <main className="flex-1">{children}</main>
